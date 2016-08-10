@@ -1,0 +1,44 @@
+syntax = "proto3";
+import "vector2.proto";
+package gamemessages;
+
+message Thrust{
+     int32 id = 1;
+     vec.vec2f direction =2;
+     float time =3;
+}
+
+message Shoot{
+     int32 id = 1;
+     vec.vec2f direction = 2;
+}
+message Handshake{
+    string name=1;
+}
+message Spawn{
+}
+
+message Scene{
+    message Object{
+        enum Type{
+            Food=0; Harvester=1; SmallShip=2;
+        }
+        Type type =1;
+        vec.vec2f position=2;
+        vec.vec2f velocity=3;
+        int32 lastProcessedCommand=4;
+    }
+}
+
+message IncomingMessage{
+    enum Type{
+        THRUST=0; SHOOT=1; HANDSHAKE =2; SPAWN=3;
+    }
+     Type type=1;
+    oneof msg{
+        Thrust thrust=5; 
+        Shoot shoot=9;
+        Handshake handshake =13;
+        Spawn spawn = 17;
+    }
+}
