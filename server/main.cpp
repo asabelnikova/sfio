@@ -6,7 +6,10 @@ using namespace sfio;
 int main() {
   boost::asio::io_service service;
 
-  GameServerWS server(service);
-  Node node;
+  // dynamic_cast<GameServer*>(&server)->onMessage(
+  //[](GameServer::Client, std::unique_ptr<MessageBase> message) {
+  // std::cout << "AAlalal\n";
+  //});
+  Node node(std::unique_ptr<GameServer>(new GameServerWS(service)));
   service.run();
 }

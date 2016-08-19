@@ -14,10 +14,10 @@ struct node {
 };
 
 class QuadTree {
-  enum { NE, NW, SW, SE };
+  enum PART { NE, NW, SW, SE };
   const int maxSize = 100;
   std::unordered_map<uint64_t, node> nodes;
-  std::array<std::unique_ptr<QuadTree>, 4> children;
+  std::vector<std::unique_ptr<QuadTree>> children;
   QuadTree *parent = nullptr;
   bool hasChildren = false;
 
@@ -29,5 +29,8 @@ class QuadTree {
   void set(uint64_t, node &&);
   void remove(uint64_t);
   void detectCollisions(std::function<void(node &, node &)>);
+
+ public:
+  uint32_t count();
 };
 }

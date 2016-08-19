@@ -1,10 +1,15 @@
 #pragma once
-#include "Client.hpp"
+#include <memory>
+#include "GameServer.hpp"
 
 namespace sfio {
 class QuadTree;
+class GameServer;
 class Player {
-  Client *client;
-  const QuadTree *room;
+  GameServer::Client *client;
+  QuadTree *room;
+
+ public:
+  Player(GameServer::Client *cl, QuadTree *room) : client(cl), room(room) {}
 };
 }

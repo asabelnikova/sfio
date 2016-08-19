@@ -36,10 +36,10 @@ import ycm_core
 flags = [
     '-x',
     'c++',
-    '-I./build/server/proto/',
+    '-I./build/proto/',
     '-I/usr/local/include',
-    '-std=c++11',
-    '-std=gnu++11',
+    '-std=c++14',
+    '-std=gnu++14',
 ]
 
 

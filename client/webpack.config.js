@@ -1,4 +1,5 @@
 var webpack = require("webpack");
+var CopyWebpackPlugin = require('copy-webpack-plugin');
 module.exports = {
   entry: './entry.jsx',
   devtool: 'source-map',
@@ -15,15 +16,20 @@ module.exports = {
       {test: /\.eot$/, loader: "file-loader"},
       {test: /\.svg$/, loader: "file-loader"}, {
         test: /\.styl/,
+        // loader: 'css-loader!stylus-loader'
         loaders: [
           'style',
           'css?modules&importLoaders=2&localIdentName=[name]__[local]__[hash:base64:6]',
-          'autoprefixer', 'stylus'
+          'stylus'
         ]
       }
     ]
   },
-  plugins: [new webpack.ProvidePlugin({$: "jquery", jQuery: "jquery"})],
+  plugins: [
+    new webpack.ProvidePlugin({$: "jquery", jQuery: "jquery"}),
+    // new CopyWebpackPlugin([{from: "../proto", to: "./proto"}])
+
+  ],
   output: {
     path: __dirname + '/app/',
     filename: 'application.js',
