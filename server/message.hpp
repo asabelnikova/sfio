@@ -14,7 +14,7 @@ enum MessageType : uint8_t {
 struct MessageProcessor;
 
 struct MessageBase {
-  GameServer::Client *client;
+  std::shared_ptr<GameServer::Client> client;
   virtual ~MessageBase(){};
   virtual void process(MessageProcessor *) = 0;
 };
@@ -29,15 +29,13 @@ struct Message : public MessageBase {
   void process(MessageProcessor *p);
 };
 
-typedef Message<gamemessages::Thrust> ThrustMessage;
-typedef Message<gamemessages::Shoot> ShootMessage;
+typedef Message<gamemessages::Action> ActionMessage;
 typedef Message<gamemessages::Handshake> HandshakeMessage;
 typedef Message<gamemessages::Spawn> SpawnMessage;
 struct MessageProcessor {
-  virtual void process(const ThrustMessage *) = 0;
+  virtual void process(const ActionMessage *) = 0;
   virtual void process(const SpawnMessage *) = 0;
   virtual void process(const HandshakeMessage *) = 0;
-  virtual void process(const ShootMessage *) = 0;
   virtual ~MessageProcessor(){};
 };
 

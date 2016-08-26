@@ -5,6 +5,7 @@ let vec2String = require("raw!../proto/vector2.proto");
 
 let Builder = null;
 let Gamemessages = null;
+let VectorNS = null;
 
 export function parsePacket(ab) {
   let GM = getMessages();
@@ -14,7 +15,7 @@ export function parsePacket(ab) {
 
 export function createSpawnPacket(opts) {
   let GM = getMessages();
-  let ic = new GM.IncomingMessage(3, null, null, null, new GM.Spawn);
+  let ic = new GM.IncomingMessage(3, null, null, new GM.Spawn);
   return ic.encode();
 }
 
@@ -25,10 +26,40 @@ export function createHandshakePacket(name) {
 }
 
 
+const actionMap = {
+  thrust: 0,
+  shoot: 1,
+  skill: 2
+};
+
+export function createActionPacket(action) {
+  let GM = getMessages();
+  let V = getVectorNS();
+  let id = actionMap[action.action];
+  let skillId = action.skill;
+  console.log(V);
+  let onPoint = new V.vec2f(action.to[0], action.to[1]);
+  let ic = new GM.IncomingMessage(0, null, new GM.Action(
+    id, action.id, onPoint, action.dt, action.startedOn, skillId
+  ));
+  return ic.encode();
+}
+
+
+function getVectorNS(){
+  if (!VectorNS) buildNS();
+  return VectorNS;
+}
 function getMessages() {
-  if (!Gamemessages) Builder = pb.newBuilder();
+  if (!Gamemessages) buildNS();
+  return Gamemessages;
+}
+
+function buildNS(){
+  Builder = pb.newBuilder();
   Builder = pb.protoFromString(vec2String, Builder, "./vector2.proto");
   Builder = pb.protoFromString(protoString, Builder, "gamemessage.proto");
   Gamemessages = Builder.build("gamemessages");
-  return Gamemessages;
+  VectorNS = Builder.build("vec");
 }
+

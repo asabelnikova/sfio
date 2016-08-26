@@ -2,21 +2,25 @@ syntax = "proto3";
 import "vector2.proto";
 package gamemessages;
 
-message Thrust{
-     int32 id = 1;
-     vec.vec2f direction =2;
-     float time =3;
+message Action{
+    enum Type{ 
+        Thrust = 0; Shoot=1; Skill=2;
+    }
+    Type type = 1;
+    string id = 2;
+    vec.vec2f onPoint =3;
+    float time =4;
+    float startedOn = 5;
+    int32 skillId = 6;
+    
 }
 
-message Shoot{
-     int32 id = 1;
-     vec.vec2f direction = 2;
-}
 message Handshake{
     string name=1;
 }
 message HandshakeResponse{
     string id = 1;
+    double zeroTime = 2;
 }
 message Spawn{
 }
@@ -37,6 +41,9 @@ message Scene{
 message PlayerState{
     float energy = 1;
     bool isAlive = 2;
+    vec.vec2f position=3;
+    vec.vec2f velocity=4;
+    double lastCommandAt = 5;
 }
 
 message OutcomingMessage{
@@ -54,13 +61,12 @@ message OutcomingMessage{
 
 message IncomingMessage{
     enum Type{
-        THRUST=0; SHOOT=1; HANDSHAKE =2; SPAWN=3;
+        ACTION=0; HANDSHAKE =2; SPAWN=3;
     }
      Type type=1;
     oneof msg{
         Handshake handshake =5;
-        Thrust thrust=13;
-        Shoot shoot=9;
+        Action action=13;
         Spawn spawn = 17;
     }
 }

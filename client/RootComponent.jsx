@@ -6,14 +6,15 @@ import thunk from 'redux-thunk';
 import {Provider, connect} from 'react-redux';
 import {rootReducer} from './reducers.js';
 import networkService from "./networkService.js" 
+import {setMousePosition} from "./InputActionsProcessor.js"
 import {wsMessageReceived, 
   makeHandshake, 
   spawnPlayer, 
+  putNewInput,
   setMouseCoords} from "./actions.js"
 
 
 let storeState = createStore(rootReducer, applyMiddleware(thunk));
-
 networkService().onMessage(ab=> storeState.dispatch(wsMessageReceived(ab)));
 
 document.addEventListener('mousemove', function(evt){
@@ -35,7 +36,7 @@ function mapStateToProps(state){
   return state;
 }
 function mapDispatchToProps(dispatch){
-  let o = {makeHandshake, spawnPlayer};
+  let o = {makeHandshake, spawnPlayer, putNewInput};
   let actions = {};
   for(let k in o){
     let fn = o[k];

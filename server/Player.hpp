@@ -4,12 +4,12 @@
 
 namespace sfio {
 class QuadTree;
-class GameServer;
 class Player {
-  GameServer::Client *client;
-  QuadTree *room;
+  std::weak_ptr<GameServer::Client> client;
+  std::shared_ptr<QuadTree> room;
 
  public:
-  Player(GameServer::Client *cl, QuadTree *room) : client(cl), room(room) {}
+  Player(std::weak_ptr<GameServer::Client> cl, std::shared_ptr<QuadTree> room)
+      : client(cl), room(room) {}
 };
 }

@@ -5,12 +5,16 @@ import state from "./state.js"
 import UserDialog from "./UserDialog.jsx"
 import SpawnDialog from "./SpawnDialog.jsx"
 import ThreeCanvas from "./ThreeWidget.jsx"
+import {syncronize} from "./Field.js"
 
 import 'bootstrap-webpack'
 
 export function Page(props){
   return <div> 
-    <ThreeCanvas />
+    <ThreeCanvas 
+      putNewInput = {props.putNewInput}
+      syncronize = {()=>{ syncronize(props.state.get('players')) }}
+    />
     <UserDialog 
       isInGame={isInGame(props.state)}
       onStart = {props.makeHandshake}
@@ -24,7 +28,7 @@ export function Page(props){
 }
 
 function isAlive(state){
-  return state.get('player').isAlive;
+  return state.getIn(['player','isAlive']);
 }
 function isInGame(state){
   return state.get('id') !== null;

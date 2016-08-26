@@ -35,7 +35,6 @@ export const SCENE_RECEIVED = 'SCENE_RECEIVED';
 export const PLAYER_STATE_RECV = 'PLAYER_STATE_RECV';
 export function wsMessageReceived(ab) {
   let message = parsePacket(ab);
-  console.log(message);
   switch (message.type) {
     case 0:  // handshake
       return {type: HANDSHAKE_DONE, message: message.handshakeResponse};
@@ -47,4 +46,12 @@ export function wsMessageReceived(ab) {
       return {type: PLAYER_STATE_RECV, message: message.playerState};
   }
   return message;
+}
+
+export const PUT_NEW_INPUT ='PUT_NEW_INPUT';
+export function putNewInput(inputActions){
+  return {
+    type:PUT_NEW_INPUT,
+    inputActions
+  }
 }
