@@ -7,8 +7,7 @@ namespace sfio {
 enum MessageType : uint8_t {
   Handshake = gamemessages::IncomingMessage::HANDSHAKE,
   Spawn = gamemessages::IncomingMessage::SPAWN,
-  Thrust = gamemessages::IncomingMessage::THRUST,
-  Shoot = gamemessages::IncomingMessage::SHOOT
+  Thrust = gamemessages::IncomingMessage::ACTION
 };
 
 struct MessageProcessor;

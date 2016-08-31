@@ -11,10 +11,9 @@
 namespace sfio {
 class Node : public MessageProcessor {
   const int MAX_COUNT_PER_ROOM = 500;
-  virtual void process(const ThrustMessage *) { std::cout << " TH MES\n"; };
+  virtual void process(const ActionMessage *) { std::cout << " TH MES\n"; };
   virtual void process(const SpawnMessage *);
   virtual void process(const HandshakeMessage *);
-  virtual void process(const ShootMessage *) { std::cout << "SSS MES\n"; };
 
   typedef std::weak_ptr<QuadTree> Room;  // shared between node and players;
   std::shared_ptr<GameServer>
