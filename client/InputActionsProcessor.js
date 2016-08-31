@@ -21,7 +21,7 @@ function mapInputToAction(id) {
     return {
       id,
       action: ActionMap[input.code], 
-      to: input.mouse.map(x => x), 
+      to: input.mouse,
       dt: input.id,
       startedOn: input.startedOn
     }

@@ -7,6 +7,7 @@ import {Provider, connect} from 'react-redux';
 import {rootReducer} from './reducers.js';
 import networkService from "./networkService.js" 
 import {setMousePosition} from "./InputActionsProcessor.js"
+import {onMouseCallback} from "./EventLoop.js"
 import {wsMessageReceived, 
   makeHandshake, 
   spawnPlayer, 
@@ -16,10 +17,7 @@ import {wsMessageReceived,
 
 let storeState = createStore(rootReducer, applyMiddleware(thunk));
 networkService().onMessage(ab=> storeState.dispatch(wsMessageReceived(ab)));
-
-document.addEventListener('mousemove', function(evt){
-  storeState.dispatch(setMouseCoords(evt.clientX, evt.clientY));
-})
+onMouseCallback(pos=>storeState.dispatch(setMouseCoords(pos)));
 
 export function RootComponent(){
   return <Provider store={storeState} >

@@ -21569,6 +21569,8 @@
 	
 	var _InputActionsProcessor = __webpack_require__(378);
 	
+	var _EventLoop = __webpack_require__(319);
+	
 	var _actions = __webpack_require__(367);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -21577,9 +21579,8 @@
 	(0, _networkService2.default)().onMessage(function (ab) {
 	  return storeState.dispatch((0, _actions.wsMessageReceived)(ab));
 	});
-	
-	document.addEventListener('mousemove', function (evt) {
-	  storeState.dispatch((0, _actions.setMouseCoords)(evt.clientX, evt.clientY));
+	(0, _EventLoop.onMouseCallback)(function (pos) {
+	  return storeState.dispatch((0, _actions.setMouseCoords)(pos));
 	});
 	
 	function RootComponent() {
@@ -27919,20 +27920,27 @@
 	    (0, _Field.setScene)(_this.scene);
 	    var aspect = window.innerWidth / window.innerHeight;
 	    _this.camera = new _three2.default.PerspectiveCamera(45, aspect, 0.01, 1000);
+	    (0, _EventLoop.setCamera)(_this.camera);
 	    _this.camera.position.z = 5;
 	    _this.camera.lookAt(new _three2.default.Vector3(0, 0, 0));
-	
-	    //this. fakePlayer = {
-	    //id: 100500,
-	    //actions:[],
-	    //initial:{position:[0,0], velocity:[0,0]},
-	    //}
-	
-	
 	    return _this;
 	  }
 	
 	  _createClass(ThreeCanvas, [{
+	    key: 'initDebugging',
+	    value: function initDebugging() {
+	      this.debugMouseMesh = new _three2.default.Mesh(new _three2.default.CircleBufferGeometry(0.1, 36), new _three2.default.MeshBasicMaterial({
+	        color: 0xff00ff
+	      }));
+	      var mesh = this.debugMouseMesh;
+	      mesh.position.z = 0;
+	      this.scene.add(mesh);
+	      (0, _EventLoop.onMouseCallback)(function (pos) {
+	        mesh.position.x = pos.x;
+	        mesh.position.y = pos.y;
+	      });
+	    }
+	  }, {
 	    key: 'componentWillReceiveProps',
 	    value: function componentWillReceiveProps(props) {}
 	  }, {
@@ -27944,6 +27952,7 @@
 	      this.node.width = window.innerWidth;
 	      this.node.height = window.innerHeight;
 	      this.renderer = new _three2.default.WebGLRenderer({ canvas: this.node });
+	      this.initDebugging();
 	      (0, _EventLoop2.default)(function () {
 	        _this2.props.syncronize();
 	        _this2.renderer.render(_this2.scene, _this2.camera);
@@ -69732,7 +69741,7 @@
 
 /***/ },
 /* 319 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
@@ -69745,18 +69754,33 @@
 	};
 	
 	exports.setZeroTime = setZeroTime;
-	exports.setCurrentMousePosition = setCurrentMousePosition;
+	exports.setCamera = setCamera;
+	exports.onMouseCallback = onMouseCallback;
 	
+	var _three = __webpack_require__(318);
 	
+	var _three2 = _interopRequireDefault(_three);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	var Camera = null;
 	var KeysState = {};
 	var Keyboard = [];
 	var zeroServerTime = 0;
 	var CurrentMousePosition = void 0;
+	var mousePositionCallbacs = [];
 	
 	document.addEventListener('keydown', keyDown());
 	document.addEventListener('keyup', keyUp());
 	document.addEventListener('mousedown', keyDown(mouseCode));
 	document.addEventListener('mouseup', keyUp(mouseCode));
+	document.addEventListener('mousemove', function (evt) {
+	  var worldPosition = getWorldMousePosition([evt.clientX, evt.clientY]);
+	  CurrentMousePosition = worldPosition;
+	  mousePositionCallbacs.map(function (fn) {
+	    return fn(worldPosition);
+	  });
+	});
 	
 	function frame(draw, keys) {
 	  collect();
@@ -69778,15 +69802,35 @@
 	function setZeroTime(t) {
 	  zeroServerTime = t;
 	}
-	function setCurrentMousePosition(p) {
-	  CurrentMousePosition = p;
+	function setCamera(c) {
+	  Camera = c;
+	}
+	function onMouseCallback(fn) {
+	  mousePositionCallbacs.push(fn);
+	}
+	var Raycaster = new _three2.default.Raycaster();
+	function getWorldMousePosition(p) {
+	
+	  var normalized = new _three2.default.Vector3();
+	  var planeNormal = new _three2.default.Vector3();
+	  var planePoint = new _three2.default.Vector3();
+	  planeNormal.set(0, 0, 1.0);
+	  planePoint.set(0, 0, 0);
+	  planePoint.sub(Camera.position);
+	  var pdot = planeNormal.dot(planePoint);
+	  if (!Camera) return normalized;
+	  normalized.x = p[0] / window.innerWidth * 2 - 1.0;
+	  normalized.y = -(p[1] / window.innerHeight) * 2 + 1.0;
+	  normalized.z = 0.0;
+	  Raycaster.setFromCamera(normalized, Camera);
+	  var ray = Raycaster.ray;
+	  var eyeDot = ray.direction.dot(new _three2.default.Vector3(0, 0, 1.0));
+	  var d = pdot / eyeDot;
+	  ray.direction.multiplyScalar(d);
+	  var pos = ray.origin.add(ray.direction);
+	  return pos;
 	}
 	
-	//function mouseDown(evt){
-	//console.log(evt.button);
-	//}
-	//function mouseUp(){
-	//}
 	function keyDown() {
 	  var evtFunc = arguments.length <= 0 || arguments[0] === undefined ? function (e) {
 	    return e.keyCode;
@@ -69813,9 +69857,7 @@
 	      code: code,
 	      dt: t - ft,
 	      startedOn: ft - zeroServerTime,
-	      mouse: CurrentMousePosition.map(function (x) {
-	        return x;
-	      })
+	      mouse: CurrentMousePosition
 	    });
 	  };
 	}
@@ -69828,9 +69870,7 @@
 	      code: k,
 	      dt: t - ft,
 	      startedOn: ft - zeroServerTime,
-	      mouse: CurrentMousePosition.map(function (x) {
-	        return x;
-	      })
+	      mouse: CurrentMousePosition
 	    });
 	
 	    KeysState[k] = t;
@@ -84059,7 +84099,6 @@
 	      }
 	    case _actions.SET_MOUSE_COORDS:
 	      {
-	        (0, _EventLoop.setCurrentMousePosition)([action.x, action.y]);
 	        return state.set("mouse", [action.x, action.y]);
 	      }
 	    case _actions.PUT_NEW_INPUT:
@@ -84070,6 +84109,7 @@
 	          if (!id) return {
 	              v: state
 	            };
+	
 	          var actions = (0, _InputActionsProcessor.processPlayerInputs)(id, inputs);
 	          actions.map(function (a) {
 	            return (0, _networkService2.default)().send((0, _PacketManager.createActionPacket)(a));
@@ -99504,9 +99544,7 @@
 	    return {
 	      id: id,
 	      action: ActionMap[input.code],
-	      to: input.mouse.map(function (x) {
-	        return x;
-	      }),
+	      to: input.mouse,
 	      dt: input.id,
 	      startedOn: input.startedOn
 	    };

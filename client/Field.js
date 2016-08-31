@@ -30,7 +30,6 @@ export function syncronize(players){
     Scene.remove(PlayerIdMeshMap.get(item));
     PlayerIdMeshMap.delete(item)
   })
-
 }
 
 export function setScene(s){ Scene = s; }

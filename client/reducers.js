@@ -6,7 +6,7 @@ import {
   HANDSHAKE_DONE,
   SET_MOUSE_COORDS
 } from './actions.js';
-import {setZeroTime, setCurrentMousePosition} from "./EventLoop.js";
+import {setZeroTime} from "./EventLoop.js";
 import {processPlayerInputs} from "./InputActionsProcessor.js";
 import networkService from "./networkService.js";
 import {createActionPacket} from "./PacketManager.js";
@@ -37,13 +37,13 @@ function state(state = fromJS(defaultState), action) {
       return state.set('player', player).mergeIn(['players'], {[id]: player});
     }
     case SET_MOUSE_COORDS: {
-      setCurrentMousePosition([action.x, action.y]);
       return state.set("mouse", [action.x, action.y]);
     }
     case PUT_NEW_INPUT: {
       let inputs = action.inputActions;
       let id = state.get('id');
       if (!id) return state;
+      
       let actions = processPlayerInputs(id, inputs);
       actions.map(a => networkService().send(createActionPacket(a)));
       return state.updateIn(
