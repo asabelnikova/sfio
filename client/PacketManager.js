@@ -37,7 +37,6 @@ export function createActionPacket(action) {
   let V = getVectorNS();
   let id = actionMap[action.action];
   let skillId = action.skill;
-  console.log(V);
   let onPoint = new V.vec2f(action.to[0], action.to[1]);
   let ic = new GM.IncomingMessage(0, null, new GM.Action(
     id, action.id, onPoint, action.dt, action.startedOn, skillId

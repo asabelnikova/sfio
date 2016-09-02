@@ -1,7 +1,7 @@
 import THREE from 'three'
 
 let Camera = null;
-const KeysState = {};
+const KeysState = new Map;
 let Keyboard = [];
 let zeroServerTime = 0;
 let CurrentMousePosition;
@@ -18,11 +18,12 @@ document.addEventListener('mousemove', function(evt){
 })
 
 function frame(draw, keys) {
-  collect();
+  let now = Date.now() - zeroServerTime;
+  collect(now);
   let commands = Keyboard;
   Keyboard = [];
   keys(commands);
-  draw();
+  draw(now);
   requestAnimationFrame(() => frame(draw, keys));
 }
 
@@ -41,7 +42,6 @@ export function setCamera(c){ Camera = c; }
 export function onMouseCallback(fn){ mousePositionCallbacs.push(fn);}
 let Raycaster = new THREE.Raycaster();
 function getWorldMousePosition(p){
-  
   let normalized = new THREE.Vector3();
   let planeNormal = new THREE.Vector3();
   let planePoint = new THREE.Vector3();
@@ -66,36 +66,33 @@ function keyDown(evtFunc = (e)=>e.keyCode) {
   return function(evt){
     if (evt.repeat) return;
     let code = evtFunc(evt); 
-    KeysState[code] = Date.now();
+    KeysState.set(code, Date.now() - zeroServerTime);
   }
 }
 
 function keyUp(evtFunc =  (e)=>e.keyCode) {
   return  function (evt){
     let code = evtFunc(evt);
-    let t = Date.now();
-    let ft = KeysState[code];
-    delete KeysState[code];
+    let t = Date.now() - zeroServerTime;
+    let ft = KeysState.get(code);
+    KeysState.delete(code);
     Keyboard.push({
       code, 
-      dt: t - ft, 
-      startedOn: ft - zeroServerTime, 
-      mouse:CurrentMousePosition
+      dt: (t - ft) / 1000.0, 
+      startedOn: ft,
+      mouse:CurrentMousePosition.clone()
     });
   }
 }
 
-function collect() {
-  let t = Date.now();
-  for (let k in KeysState) {
-    let ft = KeysState[k];
+function collect(t) {
+  for (let [k, ft] of KeysState.entries()) {
     Keyboard.push({
       code: k, 
-      dt: t - ft, 
-      startedOn: ft - zeroServerTime,
-      mouse:CurrentMousePosition
+      dt: (t - ft)/1000.0, 
+      startedOn: ft,
+      mouse:CurrentMousePosition.clone()
     });
-
-    KeysState[k] = t;
+    KeysState.set(k, t);
   }
 }

@@ -13,7 +13,7 @@ export function Page(props){
   return <div> 
     <ThreeCanvas 
       putNewInput = {props.putNewInput}
-      syncronize = {()=>{ syncronize(props.state.get('players')) }}
+      syncronize = {(now)=>{ syncronize(props.state.get('players'),now) }}
     />
     <UserDialog 
       isInGame={isInGame(props.state)}
@@ -28,7 +28,7 @@ export function Page(props){
 }
 
 function isAlive(state){
-  return state.getIn(['player','isAlive']);
+  return state.getIn(['player','parameters','energy','scalar','v']) > 0;
 }
 function isInGame(state){
   return state.get('id') !== null;

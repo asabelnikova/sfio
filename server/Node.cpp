@@ -15,13 +15,19 @@ void Node::process(const SpawnMessage* mes) {
   double millis =
       std::chrono::duration_cast<std::chrono::milliseconds>(time_since_epoch)
           .count();
-  ps->set_energy(100.0);
+  gamemessages::Parameter energy;
+  gamemessages::Parameter position;
+  energy.mutable_scalar()->set_v(100);
+  energy.mutable_scalar()->set_dv(0);
+  position.mutable_vec2()->mutable_v()->set_x(0);
+  position.mutable_vec2()->mutable_v()->set_y(0);
+  position.mutable_vec2()->mutable_dv()->set_x(0);
+  position.mutable_vec2()->mutable_dv()->set_y(0);
+
+  (*ps->mutable_parameters())["energy"] = energy;
+  (*ps->mutable_parameters())["position"] = position;
+
   ps->set_isalive(true);
-  ps->mutable_position()->set_x(1.0);
-  ps->mutable_position()->set_y(0.0);
-  ps->mutable_velocity()->set_x(-0.1);
-  ps->mutable_velocity()->set_y(0.0);
-  ps->set_lastcommandat(millis);
   mes->client->send(message.SerializeAsString());
 }
 inline void Node::findRoomForPlayer(

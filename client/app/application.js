@@ -21658,8 +21658,8 @@
 	    null,
 	    _react2.default.createElement(_ThreeWidget2.default, {
 	      putNewInput: props.putNewInput,
-	      syncronize: function syncronize() {
-	        (0, _Field.syncronize)(props.state.get('players'));
+	      syncronize: function syncronize(now) {
+	        (0, _Field.syncronize)(props.state.get('players'), now);
 	      }
 	    }),
 	    _react2.default.createElement(_UserDialog2.default, {
@@ -21675,7 +21675,7 @@
 	}
 	
 	function isAlive(state) {
-	  return state.getIn(['player', 'isAlive']);
+	  return state.getIn(['player', 'parameters', 'energy', 'scalar', 'v']) > 0;
 	}
 	function isInGame(state) {
 	  return state.get('id') !== null;
@@ -27953,8 +27953,8 @@
 	      this.node.height = window.innerHeight;
 	      this.renderer = new _three2.default.WebGLRenderer({ canvas: this.node });
 	      this.initDebugging();
-	      (0, _EventLoop2.default)(function () {
-	        _this2.props.syncronize();
+	      (0, _EventLoop2.default)(function (now) {
+	        _this2.props.syncronize(now);
 	        _this2.renderer.render(_this2.scene, _this2.camera);
 	      }, function (keys) {
 	        if (keys.length > 0) _this2.props.putNewInput(keys);
@@ -69749,6 +69749,8 @@
 	  value: true
 	});
 	
+	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+	
 	exports.default = function (renderFunction, keyTimesFunction) {
 	  frame(renderFunction, keyTimesFunction);
 	};
@@ -69764,7 +69766,7 @@
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	var Camera = null;
-	var KeysState = {};
+	var KeysState = new Map();
 	var Keyboard = [];
 	var zeroServerTime = 0;
 	var CurrentMousePosition = void 0;
@@ -69783,11 +69785,12 @@
 	});
 	
 	function frame(draw, keys) {
-	  collect();
+	  var now = Date.now() - zeroServerTime;
+	  collect(now);
 	  var commands = Keyboard;
 	  Keyboard = [];
 	  keys(commands);
-	  draw();
+	  draw(now);
 	  requestAnimationFrame(function () {
 	    return frame(draw, keys);
 	  });
@@ -69810,7 +69813,6 @@
 	}
 	var Raycaster = new _three2.default.Raycaster();
 	function getWorldMousePosition(p) {
-	
 	  var normalized = new _three2.default.Vector3();
 	  var planeNormal = new _three2.default.Vector3();
 	  var planePoint = new _three2.default.Vector3();
@@ -69839,7 +69841,7 @@
 	  return function (evt) {
 	    if (evt.repeat) return;
 	    var code = evtFunc(evt);
-	    KeysState[code] = Date.now();
+	    KeysState.set(code, Date.now() - zeroServerTime);
 	  };
 	}
 	
@@ -69850,30 +69852,51 @@
 	
 	  return function (evt) {
 	    var code = evtFunc(evt);
-	    var t = Date.now();
-	    var ft = KeysState[code];
-	    delete KeysState[code];
+	    var t = Date.now() - zeroServerTime;
+	    var ft = KeysState.get(code);
+	    KeysState.delete(code);
 	    Keyboard.push({
 	      code: code,
-	      dt: t - ft,
-	      startedOn: ft - zeroServerTime,
-	      mouse: CurrentMousePosition
+	      dt: (t - ft) / 1000.0,
+	      startedOn: ft,
+	      mouse: CurrentMousePosition.clone()
 	    });
 	  };
 	}
 	
-	function collect() {
-	  var t = Date.now();
-	  for (var k in KeysState) {
-	    var ft = KeysState[k];
-	    Keyboard.push({
-	      code: k,
-	      dt: t - ft,
-	      startedOn: ft - zeroServerTime,
-	      mouse: CurrentMousePosition
-	    });
+	function collect(t) {
+	  var _iteratorNormalCompletion = true;
+	  var _didIteratorError = false;
+	  var _iteratorError = undefined;
 	
-	    KeysState[k] = t;
+	  try {
+	    for (var _iterator = KeysState.entries()[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	      var _step$value = _slicedToArray(_step.value, 2);
+	
+	      var k = _step$value[0];
+	      var ft = _step$value[1];
+	
+	      Keyboard.push({
+	        code: k,
+	        dt: (t - ft) / 1000.0,
+	        startedOn: ft,
+	        mouse: CurrentMousePosition.clone()
+	      });
+	      KeysState.set(k, t);
+	    }
+	  } catch (err) {
+	    _didIteratorError = true;
+	    _iteratorError = err;
+	  } finally {
+	    try {
+	      if (!_iteratorNormalCompletion && _iterator.return) {
+	        _iterator.return();
+	      }
+	    } finally {
+	      if (_didIteratorError) {
+	        throw _iteratorError;
+	      }
+	    }
 	  }
 	}
 
@@ -69898,21 +69921,17 @@
 	var Scene = null;
 	var PlayerIdMeshMap = new Map();
 	
-	function syncronize(players) {
-	  //console.log(players);
+	function syncronize(players, now) {
 	  var touchedIds = [];
-	  players.forEach(function (player) {
-	    console.log(player);
-	    var id = player.id;
+	  players.forEach(function (player, id) {
 	    touchedIds.push(id);
-	    if (!(id in PlayerIdMeshMap)) {
+	    if (!PlayerIdMeshMap.has(id)) {
 	      var mesh = createMesh(player);
 	      PlayerIdMeshMap.set(id, mesh);
 	      Scene.add(mesh);
 	    }
-	    var actions = player.actions;
-	    var initial = player.initial;
-	    var current = calculatePosition(initial, actions);
+	    var current = applyActions(player, now);
+	    updateWithVelocities(current, now);
 	    applyNewStateToMesh(id, current);
 	  });
 	
@@ -69931,21 +69950,64 @@
 	  Scene = s;
 	}
 	
+	function updateWithVelocities(state, now) {
+	  for (var key in state) {
+	    var p = state[key];
+	    if (now > p.calculatedAt) {
+	      var dt = (now - p.calculatedAt) / 1000;
+	      if (p.scalar) {
+	        p.scalar.v += p.scalar.dv * dt;
+	      }
+	      if (p.vec2) {
+	        p.vec2.v.x += p.vec2.dv.x * dt;
+	        p.vec2.v.y += p.vec2.dv.y * dt;
+	      }
+	    }
+	  }
+	}
+	
 	function createMesh(player) {
 	  var material = new _three2.default.MeshBasicMaterial({ color: 0xffee33 });
 	  var geometry = new _three2.default.CircleBufferGeometry(0.1, 36);
 	  return new _three2.default.Mesh(geometry, material);
 	}
 	
-	function calculatePosition(initial, actions) {
-	  //console.warn("Don't expect something to happen");
-	  return {
-	    position: [0, 0],
-	    velocity: [0, 0]
-	  };
+	var ActionProcessors = {
+	  thrust: function thrust(initial, action) {
+	    var pos = initial.position;
+	    var mass = initial.mass ? initial.mass.scalar.v : 100;
+	    var thrust = initial.thrust ? initial.thrust.scalar.v : 10;
+	    var dt = (action.startedOn - pos.calculatedAt) / 1000;
+	    console.log(dt, action.dt, action.startedOn, pos.calculatedAt);
+	    var dx = { x: pos.vec2.dv.x * dt, y: pos.vec2.dv.y * dt, z: 0 };
+	    var dv = action.to.clone().sub(dx).normalize().multiplyScalar(thrust / mass * action.dt);
+	    pos.calculatedAt = action.startedOn; //  + action.dt * 1000; 
+	    pos.vec2.dv.x += dv.x;
+	    pos.vec2.dv.y += dv.y;
+	    pos.vec2.v.x += dx.x;
+	    pos.vec2.v.y += dx.y;
+	  }
+	};
+	
+	function applyActions(player) {
+	  if (!player.has('parameters')) return;
+	
+	  var initial = player.get('parameters').toJS();
+	
+	  player.get('actions').forEach(function (action) {
+	    var a = action.action;
+	    if (ActionProcessors[a]) ActionProcessors[a](initial, action);
+	  });
+	  return initial;
 	}
 	
 	function applyNewStateToMesh(id, currentState) {
+	  if (!currentState) return console.warn('undefined state');
+	  var pos = currentState.position.vec2.v;
+	  var mesh = PlayerIdMeshMap.get(id);
+	  mesh.position.x = pos.x;
+	  mesh.position.y = pos.y;
+	  //console.log("cur" ,PlayerIdMeshMap);
 	  //console.warn('applyNewStateToMesh does nothing');
 	}
 
@@ -84074,8 +84136,12 @@
 	    energy: 0,
 	    isAlive: false,
 	    actions: [],
-	    position: [0, 0],
-	    velocity: [0, 0]
+	    parameters: {
+	      position: {
+	        v: [0, 0], dv: [0, 0],
+	        calculatedAt: 0
+	      }
+	    }
 	  },
 	  players: {},
 	  zeroTime: 0
@@ -89241,7 +89307,6 @@
 	  var V = getVectorNS();
 	  var id = actionMap[action.action];
 	  var skillId = action.skill;
-	  console.log(V);
 	  var onPoint = new V.vec2f(action.to[0], action.to[1]);
 	  var ic = new GM.IncomingMessage(0, null, new GM.Action(id, action.id, onPoint, action.dt, action.startedOn, skillId));
 	  return ic.encode();
@@ -99502,7 +99567,7 @@
 /* 376 */
 /***/ function(module, exports) {
 
-	module.exports = "syntax = \"proto3\";\nimport \"vector2.proto\";\npackage gamemessages;\n\nmessage Action{\n    enum Type{ \n        Thrust = 0; Shoot=1; Skill=2;\n    }\n    Type type = 1;\n    string id = 2;\n    vec.vec2f onPoint =3;\n    float time =4;\n    float startedOn = 5;\n    int32 skillId = 6;\n    \n}\n\nmessage Handshake{\n    string name=1;\n}\nmessage HandshakeResponse{\n    string id = 1;\n    double zeroTime = 2;\n}\nmessage Spawn{\n}\n\nmessage Scene{\n    message Object{\n        enum Type{\n            Food=0; Harvester=1; SmallShip=2;\n        }\n        Type type =1;\n        vec.vec2f position=2;\n        vec.vec2f velocity=3;\n        int32 lastProcessedCommand=4;\n    }\n    repeated Object objects = 1;\n}\n\nmessage PlayerState{\n    float energy = 1;\n    bool isAlive = 2;\n    vec.vec2f position=3;\n    vec.vec2f velocity=4;\n    double lastCommandAt = 5;\n}\n\nmessage OutcomingMessage{\n    enum Type{\n        HandshakeResponse=0; Scene=1; PlayerState=2;\n    }\n    Type type =1;\n    oneof msg{\n        HandshakeResponse handshakeResponse=5;\n        Scene scene=10;\n        PlayerState playerState=15;\n    } \n\n}\n\nmessage IncomingMessage{\n    enum Type{\n        ACTION=0; HANDSHAKE =2; SPAWN=3;\n    }\n     Type type=1;\n    oneof msg{\n        Handshake handshake =5;\n        Action action=13;\n        Spawn spawn = 17;\n    }\n}\n"
+	module.exports = "syntax = \"proto3\";\nimport \"vector2.proto\";\npackage gamemessages;\n\nmessage Action{\n    enum Type{ \n        Thrust = 0; Shoot=1; Skill=2;\n    }\n    Type type = 1;\n    string id = 2;\n    vec.vec2f onPoint =3;\n    float time =4;\n    float startedOn = 5;\n    int32 skillId = 6;\n}\n\nmessage Handshake{\n    string name=1;\n}\nmessage HandshakeResponse{\n    string id = 1;\n    double zeroTime = 2;\n}\nmessage Spawn{\n}\n\nmessage Scene{\n    message Object{\n        enum Type{\n            Food=0; Harvester=1; SmallShip=2;\n        }\n        Type type =1;\n        vec.vec2f position=2;\n        vec.vec2f velocity=3;\n        int32 lastProcessedCommand=4;\n    }\n    repeated Object objects = 1;\n}\n\nmessage param1{\n    float v = 1;\n    float dv = 2;\n}\n\nmessage param2{\n    vec.vec2f v = 1;\n    vec.vec2f dv = 2;\n}\n\nmessage Parameter{\n    double calculatedAt = 1;\n    oneof p{\n        param1 scalar = 2;\n        param2 vec2   = 4;\n    }\n}\n\nmessage PlayerState{\n    bool isAlive = 2;\n    map<string, Parameter> parameters = 4;\n}\n\nmessage OutcomingMessage{\n    enum Type{\n        HandshakeResponse=0; Scene=1; PlayerState=2;\n    }\n    Type type =1;\n    oneof msg{\n        HandshakeResponse handshakeResponse=5;\n        Scene scene=10;\n        PlayerState playerState=15;\n    } \n\n}\n\nmessage IncomingMessage{\n    enum Type{\n        ACTION=0; HANDSHAKE =2; SPAWN=3;\n    }\n     Type type=1;\n    oneof msg{\n        Handshake handshake =5;\n        Action action=13;\n        Spawn spawn = 17;\n    }\n}\n"
 
 /***/ },
 /* 377 */
@@ -99523,6 +99588,8 @@
 	exports.setMousePosition = setMousePosition;
 	exports.processPlayerInputs = processPlayerInputs;
 	
+	
+	var ActionMap = new Map([[32, 'thrust'], ['mouse_left', 'shoot']]);
 	var MousePosition = void 0;
 	var PlayerId = void 0;
 	
@@ -99533,19 +99600,21 @@
 	  MousePosition = pos;
 	}
 	function processPlayerInputs(playerId, inputs) {
-	  var actions = inputs.map(mapInputToAction(playerId));
+	  var actions = inputs.filter(definedActions).map(mapInputToAction(playerId));
 	  return actions;
 	}
 	
-	var ActionMap = new Map([[32, 'trust'], ['mouse_left', 'shoot']]);
+	function definedActions(a) {
+	  return ActionMap.has(a.code);
+	}
 	
 	function mapInputToAction(id) {
 	  return function (input) {
 	    return {
 	      id: id,
-	      action: ActionMap[input.code],
+	      action: ActionMap.get(input.code),
 	      to: input.mouse,
-	      dt: input.id,
+	      dt: input.dt,
 	      startedOn: input.startedOn
 	    };
 	  };

@@ -41,8 +41,8 @@ export default class ThreeCanvas extends Component{
     this.node.height = window.innerHeight;
     this.renderer = new THREE.WebGLRenderer({canvas: this.node});
     this.initDebugging();
-    mainLoop(()=>{
-      this.props.syncronize();
+    mainLoop((now)=>{
+      this.props.syncronize(now);
       this.renderer.render(this.scene, this.camera);
     }, (keys)=>{if(keys.length > 0) this.props.putNewInput(keys)});
 

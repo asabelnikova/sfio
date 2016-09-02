@@ -17,8 +17,12 @@ const defaultState = {
     energy: 0,
     isAlive: false,
     actions: [],
-    position: [0, 0],
-    velocity: [0, 0]
+    parameters:{
+      position:{
+        v:[0,0], dv:[0,0],
+        calculatedAt: 0,
+      }
+    },
   },
   players: {},
   zeroTime: 0

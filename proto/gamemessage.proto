@@ -12,7 +12,6 @@ message Action{
     float time =4;
     float startedOn = 5;
     int32 skillId = 6;
-    
 }
 
 message Handshake{
@@ -38,12 +37,27 @@ message Scene{
     repeated Object objects = 1;
 }
 
+message param1{
+    float v = 1;
+    float dv = 2;
+}
+
+message param2{
+    vec.vec2f v = 1;
+    vec.vec2f dv = 2;
+}
+
+message Parameter{
+    double calculatedAt = 1;
+    oneof p{
+        param1 scalar = 2;
+        param2 vec2   = 4;
+    }
+}
+
 message PlayerState{
-    float energy = 1;
     bool isAlive = 2;
-    vec.vec2f position=3;
-    vec.vec2f velocity=4;
-    double lastCommandAt = 5;
+    map<string, Parameter> parameters = 4;
 }
 
 message OutcomingMessage{

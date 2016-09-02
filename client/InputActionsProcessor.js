@@ -1,4 +1,6 @@
 
+
+const ActionMap = new Map([[32, 'thrust'], ['mouse_left', 'shoot']]);
 let MousePosition;
 let PlayerId;
 
@@ -9,20 +11,23 @@ export function setMousePosition(pos) {
   MousePosition = pos;
 }
 export function processPlayerInputs(playerId, inputs) {
-  let actions = inputs.map(mapInputToAction(playerId));
+  let actions = inputs.filter(definedActions).map(mapInputToAction(playerId));
   return actions;
 }
 
-const ActionMap = new Map([[32, 'trust'], ['mouse_left', 'shoot']]);
+function definedActions(a){
+  return ActionMap.has(a.code);
+}
+
 
 
 function mapInputToAction(id) {
   return function(input) {
     return {
       id,
-      action: ActionMap[input.code], 
+      action: ActionMap.get(input.code), 
       to: input.mouse,
-      dt: input.id,
+      dt: input.dt,
       startedOn: input.startedOn
     }
   }
