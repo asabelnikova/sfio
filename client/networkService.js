@@ -10,7 +10,9 @@ export default function() {
   }
 
   return {
-    send: function(arrayBuffer) { socket.send(arrayBuffer); },
+    send: function(arrayBuffer) { 
+      socket.send(arrayBuffer); 
+    },
         onMessage: (fn) => callbacks.push(fn)
   }
 }

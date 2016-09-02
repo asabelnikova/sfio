@@ -60,7 +60,7 @@ let ActionProcessors = {
     let currentPos = new THREE.Vector3(pos.vec2.v.x, pos.vec2.v.y, 0);
     let dt = (action.startedOn - pos.calculatedAt)/ 1000;
     let dx = {x:pos.vec2.dv.x * dt, y: pos.vec2.dv.y * dt, z:0};
-    let dv = action.to.clone()
+    let dv = action.onPoint.clone()
       .sub(currentPos).normalize()
       .multiplyScalar( thrust / mass * action.dt);
     pos.calculatedAt = action.startedOn;//  + action.dt * 1000; 

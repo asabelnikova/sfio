@@ -18,6 +18,7 @@ struct GameServer:public std::enable_shared_from_this<GameServer> {
   virtual void onConnect(OnConnectCallback) = 0;
   virtual void onMessage(OnMessageCallback) = 0;
   virtual void sendMessage(std::shared_ptr<Client>, std::string &&) = 0;
+  virtual void sendToAllBut(std::shared_ptr<Client>, std::string &&) = 0;
   virtual ~GameServer(){};
 
  protected:

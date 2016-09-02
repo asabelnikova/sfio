@@ -11,7 +11,7 @@
 namespace sfio {
 class Node : public MessageProcessor {
   const int MAX_COUNT_PER_ROOM = 500;
-  virtual void process(const ActionMessage *) { std::cout << " TH MES\n"; };
+  virtual void process(const ActionMessage *); //  { std::cout << " Action MES\n"; };
   virtual void process(const SpawnMessage *);
   virtual void process(const HandshakeMessage *);
 

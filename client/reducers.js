@@ -49,7 +49,7 @@ function state(state = fromJS(defaultState), action) {
       if (!id) return state;
       
       let actions = processPlayerInputs(id, inputs);
-      actions.map(a => networkService().send(createActionPacket(a)));
+      actions.forEach(a => networkService().send(createActionPacket(a).buffer));
       return state.updateIn(
           ['players', id.toString(), 'actions'], List(),
           l => l.push(...actions))

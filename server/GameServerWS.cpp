@@ -33,6 +33,15 @@ inline websocketpp::connection_hdl GameServerWS::handler(
 }
 void GameServerWS::onMessage(OnMessageCallback cb) { onMessage_ = cb; }
 void GameServerWS::onConnect(OnConnectCallback cb) { onConnect_ = cb; }
+void GameServerWS::sendToAllBut(std::shared_ptr<Client> client,
+                               std::string &&message) {
+
+  std::cout << "message " << message.size() << "\n";
+  for(auto &cl:clientsConnected){
+    if(cl.second->getId() != client->getId()) 
+      sendMessage(cl.second, std::move(message));
+  }
+}
 void GameServerWS::sendMessage(std::shared_ptr<Client> client,
                                std::string &&message) {
   try {

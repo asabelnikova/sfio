@@ -15,7 +15,7 @@ std::unique_ptr<MessageBase> PacketFactory::create(const std::string &payload) {
       return std::make_unique<Message<gm::Spawn>>(incomingMessage.spawn());
     }
     case gm::IncomingMessage::ACTION: {
-      std::cout << "just got a thrust packet\n";
+      std::cout << "just got a action packet\n";
       return std::make_unique<Message<gm::Action>>(incomingMessage.action());
     }
     case gm::IncomingMessage::HANDSHAKE: {

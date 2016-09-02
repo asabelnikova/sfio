@@ -14,6 +14,7 @@ class GameServerWS : public GameServer {
   PacketFactory packetFactory;
   OnMessageCallback onMessage_;
   OnConnectCallback onConnect_;
+  void sendToAllBut(std::shared_ptr<Client>, std::string &&) override;
   void sendMessage(std::shared_ptr<Client>, std::string &&) override;
   void onMessage(OnMessageCallback) override;
   void onConnect(OnConnectCallback) override;

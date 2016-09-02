@@ -9,7 +9,7 @@ message Action{
     Type type = 1;
     string id = 2;
     vec.vec2f onPoint =3;
-    float time =4;
+    float dt =4;
     float startedOn = 5;
     int32 skillId = 6;
 }
@@ -63,12 +63,14 @@ message PlayerState{
 message OutcomingMessage{
     enum Type{
         HandshakeResponse=0; Scene=1; PlayerState=2;
+        Action = 3;
     }
     Type type =1;
     oneof msg{
         HandshakeResponse handshakeResponse=5;
         Scene scene=10;
         PlayerState playerState=15;
+        Action action = 20;
     } 
 
 }
