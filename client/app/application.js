@@ -69977,10 +69977,10 @@
 	    var pos = initial.position;
 	    var mass = initial.mass ? initial.mass.scalar.v : 100;
 	    var thrust = initial.thrust ? initial.thrust.scalar.v : 10;
+	    var currentPos = new _three2.default.Vector3(pos.vec2.v.x, pos.vec2.v.y, 0);
 	    var dt = (action.startedOn - pos.calculatedAt) / 1000;
-	    console.log(dt, action.dt, action.startedOn, pos.calculatedAt);
 	    var dx = { x: pos.vec2.dv.x * dt, y: pos.vec2.dv.y * dt, z: 0 };
-	    var dv = action.to.clone().sub(dx).normalize().multiplyScalar(thrust / mass * action.dt);
+	    var dv = action.to.clone().sub(currentPos).normalize().multiplyScalar(thrust / mass * action.dt);
 	    pos.calculatedAt = action.startedOn; //  + action.dt * 1000; 
 	    pos.vec2.dv.x += dv.x;
 	    pos.vec2.dv.y += dv.y;

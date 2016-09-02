@@ -57,11 +57,11 @@ let ActionProcessors = {
     let pos = initial.position;
     let mass = initial.mass? initial.mass.scalar.v :100;
     let thrust = initial.thrust? initial.thrust.scalar.v : 10;
+    let currentPos = new THREE.Vector3(pos.vec2.v.x, pos.vec2.v.y, 0);
     let dt = (action.startedOn - pos.calculatedAt)/ 1000;
-    console.log(dt, action.dt, action.startedOn, pos.calculatedAt);
     let dx = {x:pos.vec2.dv.x * dt, y: pos.vec2.dv.y * dt, z:0};
     let dv = action.to.clone()
-      .sub(dx).normalize()
+      .sub(currentPos).normalize()
       .multiplyScalar( thrust / mass * action.dt);
     pos.calculatedAt = action.startedOn;//  + action.dt * 1000; 
     pos.vec2.dv.x += dv.x;
