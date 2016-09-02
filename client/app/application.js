@@ -27417,7 +27417,7 @@
 /* 311 */
 /***/ function(module, exports) {
 
-	"use strict";
+	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
@@ -27444,11 +27444,10 @@
 	function initSocket() {
 	  var loc = window.location;
 	  var proto = 'ws:';
-	  var addr = proto + "//" + loc.hostname + ":9002/";
-	  console.log("Addr", addr);
+	  var addr = proto + '//' + loc.hostname + ':9002/';
 	  socket = new WebSocket(addr);
 	  socket.onopen = function () {
-	    console.log("AAAA");
+	    console.info('Socket connected');
 	  };
 	  socket.onmessage = function (event) {
 	    var fr = new FileReader();
@@ -84167,6 +84166,12 @@
 	      {
 	        return state.set("mouse", [action.x, action.y]);
 	      }
+	      PLAYER_ACTION_RECV: {
+	        var _id = action.message.id;
+	        return state.updateIn(['players', _id.toString(), 'actions'], (0, _immutable.List)(), function (l) {
+	          return l.push(action.message);
+	        });
+	      }
 	    case _actions.PUT_NEW_INPUT:
 	      {
 	        var _ret = function () {
@@ -89190,7 +89195,7 @@
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.PUT_NEW_INPUT = exports.PLAYER_STATE_RECV = exports.SCENE_RECEIVED = exports.HANDSHAKE_DONE = exports.MAKE_HANDSHAKE = exports.SPAWN_PLAYER = exports.SET_MOUSE_COORDS = undefined;
+	exports.PUT_NEW_INPUT = exports.PLAYER_ACTION_RECV = exports.PLAYER_STATE_RECV = exports.SCENE_RECEIVED = exports.HANDSHAKE_DONE = exports.MAKE_HANDSHAKE = exports.SPAWN_PLAYER = exports.SET_MOUSE_COORDS = undefined;
 	exports.setMouseCoords = setMouseCoords;
 	exports.spawnPlayer = spawnPlayer;
 	exports.makeHandshake = makeHandshake;
@@ -89231,6 +89236,7 @@
 	var HANDSHAKE_DONE = exports.HANDSHAKE_DONE = 'HANDSHAKE_DONE';
 	var SCENE_RECEIVED = exports.SCENE_RECEIVED = 'SCENE_RECEIVED';
 	var PLAYER_STATE_RECV = exports.PLAYER_STATE_RECV = 'PLAYER_STATE_RECV';
+	var PLAYER_ACTION_RECV = exports.PLAYER_ACTION_RECV = 'PLAYER_ACTION_RECV';
 	function wsMessageReceived(ab) {
 	  var message = (0, _PacketManager.parsePacket)(ab);
 	  switch (message.type) {
@@ -89245,6 +89251,10 @@
 	    case 2:
 	      // scene
 	      return { type: PLAYER_STATE_RECV, message: message.playerState };
+	
+	    case 3:
+	      // action from other players
+	      return { type: PLAYER_ACTION_RECV, message: message.action };
 	  }
 	  return message;
 	}

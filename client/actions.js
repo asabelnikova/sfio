@@ -33,6 +33,7 @@ export function makeHandshake(withName) {
 export const HANDSHAKE_DONE = 'HANDSHAKE_DONE';
 export const SCENE_RECEIVED = 'SCENE_RECEIVED';
 export const PLAYER_STATE_RECV = 'PLAYER_STATE_RECV';
+export const PLAYER_ACTION_RECV = 'PLAYER_ACTION_RECV';
 export function wsMessageReceived(ab) {
   let message = parsePacket(ab);
   switch (message.type) {
@@ -44,6 +45,9 @@ export function wsMessageReceived(ab) {
 
     case 2:  // scene
       return {type: PLAYER_STATE_RECV, message: message.playerState};
+
+    case 3:  // action from other players
+      return {type: PLAYER_ACTION_RECV, message: message.action};
   }
   return message;
 }

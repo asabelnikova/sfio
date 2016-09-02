@@ -5,15 +5,17 @@
 #include <sstream>
 
 namespace sfio {
+
 void Node::process(const ActionMessage *message){
-  // bcast this to everyone
-  //auto str = message->data.SerializeAsString();
   std::cout << "BCAST BACK" << message->data.id() <<"\n";
-
-
-  gameServer->sendToAllBut(message->client, message->data.SerializeAsString());
-  
+  gamemessages::OutcomingMessage omessage;
+  omessage.set_type(gamemessages::OutcomingMessage_Type_Action);
+  auto *act = new gamemessages::Action;
+  act->CopyFrom(message->data);
+  omessage.set_allocated_action(act);
+  gameServer->sendToAllBut(message->client, omessage.SerializeAsString());
 } 
+
 void Node::process(const SpawnMessage* mes) {
   std::cout << "We must spawn player in gamefield, but we will do this later\n";
   gamemessages::OutcomingMessage message;

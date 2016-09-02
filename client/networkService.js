@@ -21,9 +21,8 @@ function initSocket() {
   let loc = window.location;
   let proto = 'ws:';
   let addr = `${proto}//${loc.hostname}:9002/`;
-  console.log("Addr", addr);
   socket = new WebSocket(addr);
-  socket.onopen = function() { console.log("AAAA"); };
+  socket.onopen = function() { console.info('Socket connected') };
   socket.onmessage = (event) => {
     let fr = new FileReader;
     fr.onload = () => callbacks.map(fn => fn(fr.result));

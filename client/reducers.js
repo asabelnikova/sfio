@@ -3,6 +3,7 @@ import {List, Map, fromJS} from 'immutable';
 import {
   PUT_NEW_INPUT,
   PLAYER_STATE_RECV,
+  PLAYER_ACTION_RECV,
   HANDSHAKE_DONE,
   SET_MOUSE_COORDS
 } from './actions.js';
@@ -42,6 +43,12 @@ function state(state = fromJS(defaultState), action) {
     }
     case SET_MOUSE_COORDS: {
       return state.set("mouse", [action.x, action.y]);
+    }
+    PLAYER_ACTION_RECV:{
+      let id = action.message.id;
+      return state.updateIn(
+          ['players', id.toString(), 'actions'], List(),
+          l => l.push(action.message))
     }
     case PUT_NEW_INPUT: {
       let inputs = action.inputActions;
