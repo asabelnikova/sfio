@@ -14,10 +14,12 @@ class GameServerWS : public GameServer {
   PacketFactory packetFactory;
   OnMessageCallback onMessage_;
   OnConnectCallback onConnect_;
+  OnDisconnectCallback onDisconnect_;
   void sendToAllBut(std::shared_ptr<Client>, std::string &&) override;
   void sendMessage(std::shared_ptr<Client>, std::string &&) override;
   void onMessage(OnMessageCallback) override;
   void onConnect(OnConnectCallback) override;
+  void onDisconnect(OnDisconnectCallback) override;
   inline websocketpp::connection_hdl handler(std::shared_ptr<Client>) const;
 
  public:

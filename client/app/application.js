@@ -89317,7 +89317,8 @@
 	  var V = getVectorNS();
 	  var id = actionMap[action.action];
 	  var skillId = action.skill;
-	  var onPoint = new V.vec2f(action.onPoint[0], action.onPoint[1]);
+	  var onPoint = new V.vec2f(action.onPoint.x, action.onPoint.y);
+	  console.log('onPoint', onPoint, action.onPoint);
 	  var ic = new GM.IncomingMessage(0, null, new GM.Action(id, action.id, onPoint, action.dt, action.startedOn, skillId));
 	  return ic.encode();
 	}

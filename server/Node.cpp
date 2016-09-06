@@ -6,18 +6,18 @@
 
 namespace sfio {
 
-void Node::process(const ActionMessage *message){
-  std::cout << "BCAST BACK" << message->data.id() <<"\n";
+void Node::process(const ActionMessage* message) {
   gamemessages::OutcomingMessage omessage;
   omessage.set_type(gamemessages::OutcomingMessage_Type_Action);
-  auto *act = new gamemessages::Action;
+  auto id = message->client->getId();
+  if (players.count(id) > 0) players[id]->processAction(message);
+  auto act = new gamemessages::Action;
   act->CopyFrom(message->data);
   omessage.set_allocated_action(act);
   gameServer->sendToAllBut(message->client, omessage.SerializeAsString());
-} 
+}
 
 void Node::process(const SpawnMessage* mes) {
-  std::cout << "We must spawn player in gamefield, but we will do this later\n";
   gamemessages::OutcomingMessage message;
   message.set_type(gamemessages::OutcomingMessage_Type_PlayerState);
   auto ps = message.mutable_playerstate();
@@ -43,29 +43,24 @@ void Node::process(const SpawnMessage* mes) {
 }
 inline void Node::findRoomForPlayer(
     std::shared_ptr<GameServer::Client> client) noexcept {
-  auto roomIt =
-      std::find_if(std::cbegin(rooms), std::cend(rooms), [&](auto& r) {
-        auto shared = r.lock();
-        if (!shared) return false;
-        return shared->count() < MAX_COUNT_PER_ROOM;
-      });
+  auto roomIt = std::find_if(std::begin(rooms), std::end(rooms), [](auto& r) {
+    auto sh = r.lock();
+    if (!sh) return false;
+    return !sh->isOvercrowded();
+  });
   if (roomIt == rooms.end()) {
     auto shared = std::make_shared<QuadTree>();
-    rooms.push_back(shared);
-    players.push_back(Player(client, shared));
+    auto gf = std::make_shared<GameField>(shared, GameField::Players());
+    rooms.push_back(gf);
+    players[client->getId()] = gf->spawn(client);
+
   } else {
-    auto shared = roomIt->lock();
-    if (shared)
-      players.push_back(Player(client, shared));
-    else {
-      std::cerr << __FILE__ << ":" << __LINE__
-                << ": Almost impossible case, when we doing strange things\n";
-      shared = std::make_shared<QuadTree>();
-      rooms.push_back(shared);
-      players.push_back(Player(client, shared));
-    }
+    auto sh = roomIt->lock();
+    players[client->getId()] = sh->spawn(client);
   }
 }
+
+void Node::clientDisconnected(std::shared_ptr<GameServer::Client> cl) {}
 void Node::process(const HandshakeMessage* mes) {
   auto now = std::chrono::system_clock::now();
   auto time_since_epoch = now.time_since_epoch();

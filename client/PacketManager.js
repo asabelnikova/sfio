@@ -37,15 +37,17 @@ export function createActionPacket(action) {
   let V = getVectorNS();
   let id = actionMap[action.action];
   let skillId = action.skill;
-  let onPoint = new V.vec2f(action.onPoint[0], action.onPoint[1]);
-  let ic = new GM.IncomingMessage(0, null, new GM.Action(
-    id, action.id, onPoint, action.dt, action.startedOn, skillId
-  ));
+  let onPoint = new V.vec2f(action.onPoint.x, action.onPoint.y);
+  console.log('onPoint', onPoint, action.onPoint);
+  let ic = new GM.IncomingMessage(
+      0, null,
+      new GM.Action(
+          id, action.id, onPoint, action.dt, action.startedOn, skillId));
   return ic.encode();
 }
 
 
-function getVectorNS(){
+function getVectorNS() {
   if (!VectorNS) buildNS();
   return VectorNS;
 }
@@ -54,11 +56,10 @@ function getMessages() {
   return Gamemessages;
 }
 
-function buildNS(){
+function buildNS() {
   Builder = pb.newBuilder();
   Builder = pb.protoFromString(vec2String, Builder, "./vector2.proto");
   Builder = pb.protoFromString(protoString, Builder, "gamemessage.proto");
   Gamemessages = Builder.build("gamemessages");
   VectorNS = Builder.build("vec");
 }
-

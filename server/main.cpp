@@ -10,6 +10,6 @@ int main() {
   //[](GameServer::Client, std::unique_ptr<MessageBase> message) {
   // std::cout << "AAlalal\n";
   //});
-  Node node(std::unique_ptr<GameServer>(new GameServerWS(service)));
+  Node node(service, std::unique_ptr<GameServer>(new GameServerWS(service)));
   service.run();
 }

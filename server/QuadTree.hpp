@@ -7,13 +7,12 @@
 
 namespace sfio {
 
-struct node {
-  float size;
-  std::array<float, 2> position;
-  node(float, std::array<float, 2>);
-};
-
 class QuadTree {
+  struct node {
+    float size;
+    std::array<float, 2> position;
+    node(float, std::array<float, 2>);
+  };
   enum PART { NE, NW, SW, SE };
   const int maxSize = 100;
   std::unordered_map<uint64_t, node> nodes;

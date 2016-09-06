@@ -1,17 +1,20 @@
+#pragma once
 #include <list>
 #include <memory>
 #include "Client.hpp"
+#include "Player.hpp"
 #include "QuadTree.hpp"
 namespace sfio {
-class Player {};
-class Shoot {};
-class GameField {
-  std::unique_ptr<QuadTree> index;
+class GameField : public std::enable_shared_from_this<GameField> {
+  std::shared_ptr<QuadTree> index;
+  std::unordered_map<uint64_t, std::shared_ptr<Player>> players;
+  const int MAX_COUNT_PER_ROOM = 500;
 
  public:
-  std::pair<int, int> getCommandsCount();
-  Player spawn(Client);
-  void kill(Player);
-  std::list<Player*> shoot(Player, Shoot);  // return affected players
+  using Players = std::unordered_map<uint64_t, std::shared_ptr<Player>>;
+  std::shared_ptr<Player> spawn(std::shared_ptr<GameServer::Client>);
+  bool isOvercrowded();
+  GameField(std::shared_ptr<QuadTree> q, Players&& pl)
+      : index(q), players(pl){};
 };
 }
