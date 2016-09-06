@@ -84137,7 +84137,8 @@
 	    actions: [],
 	    parameters: {
 	      position: {
-	        v: [0, 0], dv: [0, 0],
+	        v: [0, 0],
+	        dv: [0, 0],
 	        calculatedAt: 0
 	      }
 	    }
@@ -84151,6 +84152,11 @@
 	  var action = arguments[1];
 	
 	  switch (action.type) {
+	    case _actions.SCENE_RECEIVED:
+	      {
+	        console.log("scene recv", action.message);
+	        return state;
+	      }
 	    case _actions.HANDSHAKE_DONE:
 	      {
 	        (0, _EventLoop.setZeroTime)(action.message.zeroTime);
@@ -84167,22 +84173,18 @@
 	        return state.set("mouse", [action.x, action.y]);
 	      }
 	      PLAYER_ACTION_RECV: {
-	        var _id = action.message.id;
-	        return state.updateIn(['players', _id.toString(), 'actions'], (0, _immutable.List)(), function (l) {
+	        var _id = action.message.id;return state.updateIn(['players', _id.toString(), 'actions'], (0, _immutable.List)(), function (l) {
 	          return l.push(action.message);
 	        });
-	      }
-	    case _actions.PUT_NEW_INPUT:
+	      }case _actions.PUT_NEW_INPUT:
 	      {
 	        var _ret = function () {
-	          var inputs = action.inputActions;
-	          var id = state.get('id');
+	          var inputs = action.inputActions;var id = state.get('id');
 	          if (!id) return {
 	              v: state
 	            };
 	
-	          var actions = (0, _InputActionsProcessor.processPlayerInputs)(id, inputs);
-	          actions.forEach(function (a) {
+	          var actions = (0, _InputActionsProcessor.processPlayerInputs)(id, inputs);actions.forEach(function (a) {
 	            return (0, _networkService2.default)().send((0, _PacketManager.createActionPacket)(a).buffer);
 	          });
 	          return {
@@ -99578,7 +99580,7 @@
 /* 376 */
 /***/ function(module, exports) {
 
-	module.exports = "syntax = \"proto3\";\nimport \"vector2.proto\";\npackage gamemessages;\n\nmessage Action{\n    enum Type{ \n        Thrust = 0; Shoot=1; Skill=2;\n    }\n    Type type = 1;\n    string id = 2;\n    vec.vec2f onPoint =3;\n    float dt =4;\n    float startedOn = 5;\n    int32 skillId = 6;\n}\n\nmessage Handshake{\n    string name=1;\n}\nmessage HandshakeResponse{\n    string id = 1;\n    double zeroTime = 2;\n}\nmessage Spawn{\n}\n\nmessage Scene{\n    message Object{\n        enum Type{\n            Food=0; Harvester=1; SmallShip=2;\n        }\n        Type type =1;\n        vec.vec2f position=2;\n        vec.vec2f velocity=3;\n        int32 lastProcessedCommand=4;\n    }\n    repeated Object objects = 1;\n}\n\nmessage param1{\n    float v = 1;\n    float dv = 2;\n}\n\nmessage param2{\n    vec.vec2f v = 1;\n    vec.vec2f dv = 2;\n}\n\nmessage Parameter{\n    double calculatedAt = 1;\n    oneof p{\n        param1 scalar = 2;\n        param2 vec2   = 4;\n    }\n}\n\nmessage PlayerState{\n    bool isAlive = 2;\n    map<string, Parameter> parameters = 4;\n}\n\nmessage OutcomingMessage{\n    enum Type{\n        HandshakeResponse=0; Scene=1; PlayerState=2;\n        Action = 3;\n    }\n    Type type =1;\n    oneof msg{\n        HandshakeResponse handshakeResponse=5;\n        Scene scene=10;\n        PlayerState playerState=15;\n        Action action = 20;\n    } \n\n}\n\nmessage IncomingMessage{\n    enum Type{\n        ACTION=0; HANDSHAKE =2; SPAWN=3;\n    }\n     Type type=1;\n    oneof msg{\n        Handshake handshake =5;\n        Action action=13;\n        Spawn spawn = 17;\n    }\n}\n"
+	module.exports = "syntax = \"proto3\";\nimport \"vector2.proto\";\npackage gamemessages;\n\nmessage Action{\n    enum Type{ \n        Thrust = 0; Shoot=1; Skill=2;\n    }\n    Type type = 1;\n    string id = 2;\n    vec.vec2f onPoint =3;\n    float dt =4;\n    float startedOn = 5;\n    int32 skillId = 6;\n}\n\nmessage Handshake{\n    string name=1;\n}\nmessage HandshakeResponse{\n    string id = 1;\n    double zeroTime = 2;\n}\nmessage Spawn{\n}\n\n\nmessage param1{\n    float v = 1;\n    float dv = 2;\n}\n\nmessage param2{\n    vec.vec2f v = 1;\n    vec.vec2f dv = 2;\n}\n\nmessage Parameter{\n    double calculatedAt = 1;\n    oneof p{\n        param1 scalar = 2;\n        param2 vec2   = 4;\n    }\n}\n\nmessage PlayerState{\n    bool isAlive = 2;\n    map<string, Parameter> parameters = 4;\n}\nmessage Scene{\n    repeated PlayerState objects = 1;\n}\n\nmessage OutcomingMessage{\n    enum Type{\n        HandshakeResponse=0; Scene=1; PlayerState=2;\n        Action = 3;\n    }\n    Type type =1;\n    oneof msg{\n        HandshakeResponse handshakeResponse=5;\n        Scene scene=10;\n        PlayerState playerState=15;\n        Action action = 20;\n    } \n\n}\n\nmessage IncomingMessage{\n    enum Type{\n        ACTION=0; HANDSHAKE =2; SPAWN=3;\n    }\n     Type type=1;\n    oneof msg{\n        Handshake handshake =5;\n        Action action=13;\n        Spawn spawn = 17;\n    }\n}\n"
 
 /***/ },
 /* 377 */

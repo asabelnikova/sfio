@@ -32,9 +32,10 @@ class Node : public MessageProcessor {
   GameField::Players players;
 
   void onTimer() {
-    std::cout << "here 200 millis"
-              << std::chrono::system_clock::now().time_since_epoch().count()
-              << "\n";
+    stateDumper->dumpState(rooms);
+    // std::cout << "here 200 millis"
+    //<< std::chrono::system_clock::now().time_since_epoch().count()
+    //<< "\n";
   }
   void messageRouter(std::shared_ptr<GameServer::Client> cl,
                      std::unique_ptr<MessageBase> &&msg) {
@@ -46,6 +47,7 @@ class Node : public MessageProcessor {
  public:
   Node(boost::asio::io_service &service, std::unique_ptr<GameServer> &&gs)
       : gameServer(std::move(gs)),
+        stateDumper(new StateDumper()),
         duration(boost::posix_time::milliseconds(200)),
         timer(service, duration) {
     timerHander = [&](const boost::system::error_code &) {

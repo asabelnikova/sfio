@@ -1,10 +1,19 @@
 #include "GameField.hpp"
 #include <chrono>
 #include <glm/vec2.hpp>
+#include <iostream>
 #include "GameServer.hpp"
 #include "Player.hpp"
 
 namespace sfio {
+const std::unordered_map<uint64_t, std::shared_ptr<Player>>&
+GameField::getPlayers() {
+  return players;
+}
+
+void GameField::updateParameters(double timestamp) {
+  std::cout << "recalculate with " << timestamp << "\n";
+}
 bool GameField::isOvercrowded() { return index->count() > MAX_COUNT_PER_ROOM; }
 std::shared_ptr<Player> GameField::spawn(
     std::shared_ptr<GameServer::Client> cl) {

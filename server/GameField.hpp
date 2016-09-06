@@ -13,7 +13,9 @@ class GameField : public std::enable_shared_from_this<GameField> {
  public:
   using Players = std::unordered_map<uint64_t, std::shared_ptr<Player>>;
   std::shared_ptr<Player> spawn(std::shared_ptr<GameServer::Client>);
+  void updateParameters(double timestamp);
   bool isOvercrowded();
+  const std::unordered_map<uint64_t, std::shared_ptr<Player>>& getPlayers();
   GameField(std::shared_ptr<QuadTree> q, Players&& pl)
       : index(q), players(pl){};
 };

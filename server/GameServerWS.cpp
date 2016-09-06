@@ -5,6 +5,9 @@ namespace sfio {
 GameServerWS::GameServerWS(boost::asio::io_service &s) : io_service(s) {
   websocketServer.init_asio(&s);
   websocketServer.set_reuse_addr(true);
+  websocketServer.clear_access_channels(
+      websocketpp::log::alevel::frame_payload |
+      websocketpp::log::alevel::frame_header);
   websocketServer.set_open_handler([&](websocketpp::connection_hdl hdl) {
     auto id = uint64_t(hdl.lock().get());
     clientsConnected[id] = createClient(id);
@@ -41,7 +44,6 @@ void GameServerWS::onConnect(OnConnectCallback cb) { onConnect_ = cb; }
 void GameServerWS::onDisconnect(OnDisconnectCallback cb) { onDisconnect_ = cb; }
 void GameServerWS::sendToAllBut(std::shared_ptr<Client> client,
                                 std::string &&message) {
-  std::cout << "message " << message.size() << "\n";
   for (auto &cl : clientsConnected) {
     if (cl.second->getId() != client->getId())
       sendMessage(cl.second, std::move(message));

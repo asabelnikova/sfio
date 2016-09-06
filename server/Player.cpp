@@ -8,6 +8,8 @@ namespace sfio {
 using v2Param = TypedParameter<glm::tvec2<double>>;
 using sParam = TypedParameter<double>;
 
+std::weak_ptr<GameServer::Client> Player::getClient() { return client; }
+const Player::ParamMap& Player::getParameters() { return parameters; }
 void Player::set(std::string s, std::unique_ptr<Parameter> ptr) {
   parameters[s] = std::move(ptr);
 }

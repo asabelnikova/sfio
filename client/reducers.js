@@ -4,6 +4,7 @@ import {
   PUT_NEW_INPUT,
   PLAYER_STATE_RECV,
   PLAYER_ACTION_RECV,
+  SCENE_RECEIVED,
   HANDSHAKE_DONE,
   SET_MOUSE_COORDS
 } from './actions.js';
@@ -18,9 +19,10 @@ const defaultState = {
     energy: 0,
     isAlive: false,
     actions: [],
-    parameters:{
-      position:{
-        v:[0,0], dv:[0,0],
+    parameters: {
+      position: {
+        v: [0, 0],
+        dv: [0, 0],
         calculatedAt: 0,
       }
     },
@@ -31,6 +33,10 @@ const defaultState = {
 
 function state(state = fromJS(defaultState), action) {
   switch (action.type) {
+    case SCENE_RECEIVED: {
+      console.log("scene recv", action.message);
+      return state;
+    }
     case HANDSHAKE_DONE: {
       setZeroTime(action.message.zeroTime);
       return state.set('id', action.message.id)
@@ -44,23 +50,17 @@ function state(state = fromJS(defaultState), action) {
     case SET_MOUSE_COORDS: {
       return state.set("mouse", [action.x, action.y]);
     }
-    PLAYER_ACTION_RECV:{
-      let id = action.message.id;
-      return state.updateIn(
+      PLAYER_ACTION_RECV: {let id = action.message.id; return state.updateIn(
           ['players', id.toString(), 'actions'], List(),
-          l => l.push(action.message))
-    }
-    case PUT_NEW_INPUT: {
-      let inputs = action.inputActions;
-      let id = state.get('id');
-      if (!id) return state;
-      
-      let actions = processPlayerInputs(id, inputs);
-      actions.forEach(a => networkService().send(createActionPacket(a).buffer));
-      return state.updateIn(
-          ['players', id.toString(), 'actions'], List(),
-          l => l.push(...actions))
-    }
+          l => l.push(action.message))} case PUT_NEW_INPUT:
+          {let inputs = action.inputActions; let id = state.get('id');
+           if (!id) return state;
+
+           let actions = processPlayerInputs(id, inputs); actions.forEach(
+               a => networkService().send(createActionPacket(a).buffer));
+           return state.updateIn(
+               ['players', id.toString(), 'actions'], List(),
+               l => l.push(...actions))}
   }
 
   return state;
