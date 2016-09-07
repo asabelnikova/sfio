@@ -32,17 +32,15 @@ const actionMap = {
   skill: 2
 };
 
-export function createActionPacket(action) {
+export function createActionPacket(action, serverZeroTime) {
   let GM = getMessages();
   let V = getVectorNS();
   let id = actionMap[action.action];
   let skillId = action.skill;
   let onPoint = new V.vec2f(action.onPoint.x, action.onPoint.y);
-  console.log('onPoint', onPoint, action.onPoint);
-  let ic = new GM.IncomingMessage(
-      0, null,
-      new GM.Action(
-          id, action.id, onPoint, action.dt, action.startedOn, skillId));
+  let act= new GM.Action(id, action.id, onPoint, action.dt, action.startedOn + serverZeroTime, skillId);
+  let ic = new GM.IncomingMessage( 0, null, act);
+  console.log(ic);
   return ic.encode();
 }
 

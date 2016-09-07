@@ -10,7 +10,7 @@ message Action{
     string id = 2;
     vec.vec2f onPoint =3;
     float dt =4;
-    float startedOn = 5;
+    double startedOn = 5;
     int32 skillId = 6;
 }
 
@@ -44,11 +44,10 @@ message Parameter{
 }
 
 message PlayerState{
-    bool isAlive = 2;
     map<string, Parameter> parameters = 4;
 }
 message Scene{
-    repeated PlayerState objects = 1;
+    map<string, PlayerState> objects = 1;
 }
 
 message OutcomingMessage{

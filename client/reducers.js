@@ -34,7 +34,7 @@ const defaultState = {
 function state(state = fromJS(defaultState), action) {
   switch (action.type) {
     case SCENE_RECEIVED: {
-      console.log("scene recv", action.message);
+      console.log(action.message.toRaw(), state.get('id'));
       return state;
     }
     case HANDSHAKE_DONE: {
@@ -50,17 +50,25 @@ function state(state = fromJS(defaultState), action) {
     case SET_MOUSE_COORDS: {
       return state.set("mouse", [action.x, action.y]);
     }
-      PLAYER_ACTION_RECV: {let id = action.message.id; return state.updateIn(
+    case PLAYER_ACTION_RECV: {
+      let id = action.message.id;
+      return state.updateIn(
           ['players', id.toString(), 'actions'], List(),
-          l => l.push(action.message))} case PUT_NEW_INPUT:
-          {let inputs = action.inputActions; let id = state.get('id');
-           if (!id) return state;
+          l => l.push(action.message));
+    }
+    case PUT_NEW_INPUT: {
+      let inputs = action.inputActions;
+      let id = state.get('id');
+      if (!id) return state;
 
-           let actions = processPlayerInputs(id, inputs); actions.forEach(
-               a => networkService().send(createActionPacket(a).buffer));
-           return state.updateIn(
-               ['players', id.toString(), 'actions'], List(),
-               l => l.push(...actions))}
+      let actions = processPlayerInputs(id, inputs);
+      let zeroTime = state.get('zeroTime');
+      actions.forEach(
+          a => networkService().send(createActionPacket(a, zeroTime).buffer));
+      return state.updateIn(
+          ['players', id.toString(), 'actions'], List(),
+          l => l.push(...actions));
+    }
   }
 
   return state;

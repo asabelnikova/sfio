@@ -1,6 +1,7 @@
 #include "StateDumper.hpp"
 #include <chrono>
 #include <iostream>
+#include <sstream>
 #include "GameField.hpp"
 #include "gamemessage.pb.h"
 
@@ -16,12 +17,18 @@ void StateDumper::dumpState(std::vector<std::weak_ptr<GameField>> &fields) {
     gamemessages::OutcomingMessage outMessage;
     outMessage.set_type(gamemessages::OutcomingMessage::Scene);
     auto objects = outMessage.mutable_scene()->mutable_objects();
-    std::cout << "WE HAVE " << gfptr->getPlayers().size() << "\n";
     for (auto &p : gfptr->getPlayers()) {
-      auto obj = objects->Add();
+      gamemessages::PlayerState obj;  // objects->Add();
       for (auto &param : p.second->getParameters()) {
-        (*obj->mutable_parameters())[param.first] = *param.second->serialize();
+        (*obj.mutable_parameters())[param.first] = *param.second->serialize();
       }
+      std::string id;
+      {
+        std::stringstream ss;
+        ss << p.first;
+        id = ss.str();
+      }
+      (*objects)[id] = obj;
     }
     for (auto &p : gfptr->getPlayers()) {
       auto clientPtr = p.second->getClient().lock();

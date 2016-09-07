@@ -69977,14 +69977,22 @@
 	    var mass = initial.mass ? initial.mass.scalar.v : 100;
 	    var thrust = initial.thrust ? initial.thrust.scalar.v : 10;
 	    var currentPos = new _three2.default.Vector3(pos.vec2.v.x, pos.vec2.v.y, 0);
-	    var dt = (action.startedOn - pos.calculatedAt) / 1000;
-	    var dx = { x: pos.vec2.dv.x * dt, y: pos.vec2.dv.y * dt, z: 0 };
-	    var dv = action.onPoint.clone().sub(currentPos).normalize().multiplyScalar(thrust / mass * action.dt);
-	    pos.calculatedAt = action.startedOn; //  + action.dt * 1000; 
-	    pos.vec2.dv.x += dv.x;
-	    pos.vec2.dv.y += dv.y;
-	    pos.vec2.v.x += dx.x;
-	    pos.vec2.v.y += dx.y;
+	    var dtLinear = (action.startedOn - pos.calculatedAt) / 1000;
+	    var dt = action.dt;
+	    var dv = {
+	      x: pos.vec2.dv.x * dtLinear,
+	      y: pos.vec2.dv.y * dtLinear,
+	      z: 0
+	    };
+	    var dva = { x: pos.vec2.dv.x * dt, y: pos.vec2.dv.y * dt, z: 0 };
+	    var a = action.onPoint.clone().sub(currentPos).normalize().multiplyScalar(thrust / mass);
+	    pos.calculatedAt = action.startedOn + action.dt * 1000.0;
+	    var at = a.clone().multiplyScalar(action.dt);
+	    var at2 = a.clone().multiplyScalar(action.dt * action.dt * 0.5);
+	    pos.vec2.dv.x += at.x;
+	    pos.vec2.dv.y += at.y;
+	    pos.vec2.v.x += dv.x + at2.x + dva.x;
+	    pos.vec2.v.y += dv.y + at2.y + dva.y;
 	  }
 	};
 	
@@ -69992,7 +70000,6 @@
 	  if (!player.has('parameters')) return;
 	
 	  var initial = player.get('parameters').toJS();
-	
 	  player.get('actions').forEach(function (action) {
 	    var a = action.action;
 	    if (ActionProcessors[a]) ActionProcessors[a](initial, action);
@@ -70006,8 +70013,6 @@
 	  var mesh = PlayerIdMeshMap.get(id);
 	  mesh.position.x = pos.x;
 	  mesh.position.y = pos.y;
-	  //console.log("cur" ,PlayerIdMeshMap);
-	  //console.warn('applyNewStateToMesh does nothing');
 	}
 
 /***/ },
@@ -84154,7 +84159,7 @@
 	  switch (action.type) {
 	    case _actions.SCENE_RECEIVED:
 	      {
-	        console.log("scene recv", action.message);
+	        console.log(action.message.toRaw(), state.get('id'));
 	        return state;
 	      }
 	    case _actions.HANDSHAKE_DONE:
@@ -84172,20 +84177,26 @@
 	      {
 	        return state.set("mouse", [action.x, action.y]);
 	      }
-	      PLAYER_ACTION_RECV: {
-	        var _id = action.message.id;return state.updateIn(['players', _id.toString(), 'actions'], (0, _immutable.List)(), function (l) {
+	    case _actions.PLAYER_ACTION_RECV:
+	      {
+	        var _id = action.message.id;
+	        return state.updateIn(['players', _id.toString(), 'actions'], (0, _immutable.List)(), function (l) {
 	          return l.push(action.message);
 	        });
-	      }case _actions.PUT_NEW_INPUT:
+	      }
+	    case _actions.PUT_NEW_INPUT:
 	      {
 	        var _ret = function () {
-	          var inputs = action.inputActions;var id = state.get('id');
+	          var inputs = action.inputActions;
+	          var id = state.get('id');
 	          if (!id) return {
 	              v: state
 	            };
 	
-	          var actions = (0, _InputActionsProcessor.processPlayerInputs)(id, inputs);actions.forEach(function (a) {
-	            return (0, _networkService2.default)().send((0, _PacketManager.createActionPacket)(a).buffer);
+	          var actions = (0, _InputActionsProcessor.processPlayerInputs)(id, inputs);
+	          var zeroTime = state.get('zeroTime');
+	          actions.forEach(function (a) {
+	            return (0, _networkService2.default)().send((0, _PacketManager.createActionPacket)(a, zeroTime).buffer);
 	          });
 	          return {
 	            v: state.updateIn(['players', id.toString(), 'actions'], (0, _immutable.List)(), function (l) {
@@ -89314,14 +89325,15 @@
 	  skill: 2
 	};
 	
-	function createActionPacket(action) {
+	function createActionPacket(action, serverZeroTime) {
 	  var GM = getMessages();
 	  var V = getVectorNS();
 	  var id = actionMap[action.action];
 	  var skillId = action.skill;
 	  var onPoint = new V.vec2f(action.onPoint.x, action.onPoint.y);
-	  console.log('onPoint', onPoint, action.onPoint);
-	  var ic = new GM.IncomingMessage(0, null, new GM.Action(id, action.id, onPoint, action.dt, action.startedOn, skillId));
+	  var act = new GM.Action(id, action.id, onPoint, action.dt, action.startedOn + serverZeroTime, skillId);
+	  var ic = new GM.IncomingMessage(0, null, act);
+	  console.log(ic);
 	  return ic.encode();
 	}
 	
@@ -99580,7 +99592,7 @@
 /* 376 */
 /***/ function(module, exports) {
 
-	module.exports = "syntax = \"proto3\";\nimport \"vector2.proto\";\npackage gamemessages;\n\nmessage Action{\n    enum Type{ \n        Thrust = 0; Shoot=1; Skill=2;\n    }\n    Type type = 1;\n    string id = 2;\n    vec.vec2f onPoint =3;\n    float dt =4;\n    float startedOn = 5;\n    int32 skillId = 6;\n}\n\nmessage Handshake{\n    string name=1;\n}\nmessage HandshakeResponse{\n    string id = 1;\n    double zeroTime = 2;\n}\nmessage Spawn{\n}\n\n\nmessage param1{\n    float v = 1;\n    float dv = 2;\n}\n\nmessage param2{\n    vec.vec2f v = 1;\n    vec.vec2f dv = 2;\n}\n\nmessage Parameter{\n    double calculatedAt = 1;\n    oneof p{\n        param1 scalar = 2;\n        param2 vec2   = 4;\n    }\n}\n\nmessage PlayerState{\n    bool isAlive = 2;\n    map<string, Parameter> parameters = 4;\n}\nmessage Scene{\n    repeated PlayerState objects = 1;\n}\n\nmessage OutcomingMessage{\n    enum Type{\n        HandshakeResponse=0; Scene=1; PlayerState=2;\n        Action = 3;\n    }\n    Type type =1;\n    oneof msg{\n        HandshakeResponse handshakeResponse=5;\n        Scene scene=10;\n        PlayerState playerState=15;\n        Action action = 20;\n    } \n\n}\n\nmessage IncomingMessage{\n    enum Type{\n        ACTION=0; HANDSHAKE =2; SPAWN=3;\n    }\n     Type type=1;\n    oneof msg{\n        Handshake handshake =5;\n        Action action=13;\n        Spawn spawn = 17;\n    }\n}\n"
+	module.exports = "syntax = \"proto3\";\nimport \"vector2.proto\";\npackage gamemessages;\n\nmessage Action{\n    enum Type{ \n        Thrust = 0; Shoot=1; Skill=2;\n    }\n    Type type = 1;\n    string id = 2;\n    vec.vec2f onPoint =3;\n    float dt =4;\n    double startedOn = 5;\n    int32 skillId = 6;\n}\n\nmessage Handshake{\n    string name=1;\n}\nmessage HandshakeResponse{\n    string id = 1;\n    double zeroTime = 2;\n}\nmessage Spawn{\n}\n\n\nmessage param1{\n    float v = 1;\n    float dv = 2;\n}\n\nmessage param2{\n    vec.vec2f v = 1;\n    vec.vec2f dv = 2;\n}\n\nmessage Parameter{\n    double calculatedAt = 1;\n    oneof p{\n        param1 scalar = 2;\n        param2 vec2   = 4;\n    }\n}\n\nmessage PlayerState{\n    map<string, Parameter> parameters = 4;\n}\nmessage Scene{\n    map<string, PlayerState> objects = 1;\n}\n\nmessage OutcomingMessage{\n    enum Type{\n        HandshakeResponse=0; Scene=1; PlayerState=2;\n        Action = 3;\n    }\n    Type type =1;\n    oneof msg{\n        HandshakeResponse handshakeResponse=5;\n        Scene scene=10;\n        PlayerState playerState=15;\n        Action action = 20;\n    } \n\n}\n\nmessage IncomingMessage{\n    enum Type{\n        ACTION=0; HANDSHAKE =2; SPAWN=3;\n    }\n     Type type=1;\n    oneof msg{\n        Handshake handshake =5;\n        Action action=13;\n        Spawn spawn = 17;\n    }\n}\n"
 
 /***/ },
 /* 377 */

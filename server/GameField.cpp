@@ -12,7 +12,7 @@ GameField::getPlayers() {
 }
 
 void GameField::updateParameters(double timestamp) {
-  std::cout << "recalculate with " << timestamp << "\n";
+  //std::cout << "recalculate with " << timestamp << "\n";
 }
 bool GameField::isOvercrowded() { return index->count() > MAX_COUNT_PER_ROOM; }
 std::shared_ptr<Player> GameField::spawn(
@@ -22,7 +22,7 @@ std::shared_ptr<Player> GameField::spawn(
   auto player = std::make_shared<Player>(cl, shared_from_this());
   v2 p{0.0, 0.0};
   v2 v{0.0, 0.0};
-  double t = std::chrono::system_clock::now().time_since_epoch().count();
+  double t = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
   player->set("position",
               std::unique_ptr<Parameter>(new TypedParameter<v2>{p, v, t}));

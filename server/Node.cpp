@@ -38,7 +38,6 @@ void Node::process(const SpawnMessage* mes) {
   (*ps->mutable_parameters())["energy"] = energy;
   (*ps->mutable_parameters())["position"] = position;
 
-  ps->set_isalive(true);
   mes->client->send(message.SerializeAsString());
 }
 inline void Node::findRoomForPlayer(
