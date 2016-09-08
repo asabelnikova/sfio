@@ -8,7 +8,7 @@
 namespace sfio {
 using D = std::chrono::duration<double, std::ratio<1>>;
 void StateDumper::dumpState(std::vector<std::weak_ptr<GameField>> &fields) {
-  double timestamp = std::chrono::duration_cast<D>(
+  double timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
                          std::chrono::system_clock::now().time_since_epoch())
                          .count();
   for (auto &gameField : fields) {

@@ -21,7 +21,6 @@ function frame(draw, keys) {
   collect(now);
   let commands = Keyboard;
   Keyboard = [];
-  console.log(commands);
   keys(commands);
   draw(now);
   requestAnimationFrame(() => frame(draw, keys));
