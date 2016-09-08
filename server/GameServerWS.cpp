@@ -28,7 +28,6 @@ GameServerWS::GameServerWS(boost::asio::io_service &s) : io_service(s) {
         } else {
           std::cerr << "on message function in not installed\n";
         }
-        std::cout << "Message recv \n";
       });
   websocketServer.listen(9002);
   websocketServer.start_accept();

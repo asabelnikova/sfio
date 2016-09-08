@@ -69930,6 +69930,7 @@
 	      Scene.add(mesh);
 	    }
 	    var current = applyActions(player, now);
+	    if (!current) return;
 	    updateWithVelocities(current, now);
 	    applyNewStateToMesh(id, current);
 	  });
@@ -69993,13 +69994,15 @@
 	    pos.vec2.dv.y += at.y;
 	    pos.vec2.v.x += dv.x + at2.x + dva.x;
 	    pos.vec2.v.y += dv.y + at2.y + dva.y;
+	    console.log("dvelocity", Math.hypot(at.x, at.y));
 	  }
 	};
 	
 	function applyActions(player) {
 	  if (!player.has('parameters')) return;
-	
 	  var initial = player.get('parameters').toJS();
+	  if (!player.has('actions')) return initial;
+	
 	  player.get('actions').forEach(function (action) {
 	    var a = action.action;
 	    if (ActionProcessors[a]) ActionProcessors[a](initial, action);
@@ -84159,8 +84162,21 @@
 	  switch (action.type) {
 	    case _actions.SCENE_RECEIVED:
 	      {
-	        console.log(action.message.toRaw(), state.get('id'));
-	        return state;
+	        var objects = action.message.toRaw().objects;
+	        var zeroTime = state.get('zeroTime');
+	        for (var k in objects) {
+	          var pl = objects[k];
+	          for (var pk in pl.parameters) {
+	            var param = pl.parameters[pk];
+	            param.calculatedAt -= zeroTime;
+	            if (pk == 'position') {
+	              var v = param.vec2.dv;
+	              console.log("GOT SPEED", Math.hypot(v.x, v.y));
+	            }
+	          }
+	        }
+	
+	        return state.set('players', (0, _immutable.fromJS)(objects));
 	      }
 	    case _actions.HANDSHAKE_DONE:
 	      {

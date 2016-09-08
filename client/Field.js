@@ -13,6 +13,7 @@ export function syncronize(players, now) {
       Scene.add(mesh);
     }
     let current = applyActions(player, now);
+    if (!current) return;
     updateWithVelocities(current, now);
     applyNewStateToMesh(id, current);
   });
@@ -78,13 +79,15 @@ let ActionProcessors =
         pos.vec2.dv.y += at.y;
         pos.vec2.v.x += dv.x + at2.x + dva.x;
         pos.vec2.v.y += dv.y + at2.y + dva.y;
+        console.log("dvelocity", Math.hypot(at.x, at.y));
       }
     }
 
 function applyActions(player) {
   if (!player.has('parameters')) return;
-
   let initial = player.get('parameters').toJS();
+  if (!player.has('actions')) return initial;
+
   player.get('actions').forEach(action => {
     let a = action.action;
     if (ActionProcessors[a]) ActionProcessors[a](initial, action);

@@ -30,6 +30,7 @@ void Player::processAction(const ActionMessage* msg) {
       double calculatedAt = positionP.calculatedAt;
 
       auto dtLinear = (msg->data.startedon() - calculatedAt) / 1000.0f;
+
       double dt = msg->data.dt();
       glm::tvec2<double> onPoint(msg->data.onpoint().x(),
                                  msg->data.onpoint().y());
@@ -37,15 +38,16 @@ void Player::processAction(const ActionMessage* msg) {
       auto dx = velocity * dtLinear;
       auto dxa = velocity * dt;
       std::cout << std::setprecision(15);
-      std::cout << "times " << msg->data.startedon() << " " << calculatedAt
-                << " " << dtLinear << " " << dt << "\n";
-      std::cout << "passed before " << glm::length(dx) << "\n";
-      std::cout << "passed during " << glm::length(dxa) << "\n";
+      // std::cout << "times " << msg->data.startedon() << " " << dtLinear << "
+      // "
+      //<< dt << "\n";
       auto a = glm::normalize(onPoint - position) * (thrust / mass);
       auto at = a * dt;
       auto at2 = a * dt * dt * 0.5;
       position += at2 + dx + dxa;
       velocity += at;
+      std::cout << "dv velocity " << glm::length(velocity) << " "
+                << glm::length(positionP.velocity) << "\n";
 
       positionP.calculatedAt = msg->data.startedon() + msg->data.dt() * 1000.0;
     }
@@ -53,7 +55,5 @@ void Player::processAction(const ActionMessage* msg) {
     default:
       return;
   }
-
-  std::cout << "PROCESS PLAYER MESSAGE\n";
 }
 }

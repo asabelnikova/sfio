@@ -34,8 +34,21 @@ const defaultState = {
 function state(state = fromJS(defaultState), action) {
   switch (action.type) {
     case SCENE_RECEIVED: {
-      console.log(action.message.toRaw(), state.get('id'));
-      return state;
+      let objects = action.message.toRaw().objects;
+      let zeroTime = state.get('zeroTime');
+      for (let k in objects) {
+        let pl = objects[k];
+        for (let pk in pl.parameters) {
+          let param = pl.parameters[pk];
+          param.calculatedAt -= zeroTime;
+          if (pk == 'position') {
+            let v = param.vec2.dv;
+            console.log("GOT SPEED", Math.hypot(v.x, v.y));
+          }
+        }
+      }
+
+      return state.set('players', fromJS(objects));
     }
     case HANDSHAKE_DONE: {
       setZeroTime(action.message.zeroTime);
