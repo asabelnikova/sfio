@@ -38,16 +38,11 @@ void Player::processAction(const ActionMessage* msg) {
       auto dx = velocity * dtLinear;
       auto dxa = velocity * dt;
       std::cout << std::setprecision(15);
-      // std::cout << "times " << msg->data.startedon() << " " << dtLinear << "
-      // "
-      //<< dt << "\n";
       auto a = glm::normalize(onPoint - position) * (thrust / mass);
       auto at = a * dt;
       auto at2 = a * dt * dt * 0.5;
       position += at2 + dx + dxa;
       velocity += at;
-      std::cout << "dv velocity " << glm::length(velocity) << " "
-                << glm::length(positionP.velocity) << "\n";
 
       positionP.calculatedAt = msg->data.startedon() + msg->data.dt() * 1000.0;
     }

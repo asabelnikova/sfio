@@ -43,7 +43,6 @@ function state(state = fromJS(defaultState), action) {
           param.calculatedAt -= zeroTime;
           if (pk == 'position') {
             let v = param.vec2.dv;
-            console.log("GOT SPEED", Math.hypot(v.x, v.y));
           }
         }
       }

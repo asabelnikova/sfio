@@ -14,8 +14,6 @@ ParameterPtr createParameter<V2>(V2 data, V2 velocity, double calculatedAt) {
   p->mutable_vec2()->mutable_v()->set_y(data.y);
   p->mutable_vec2()->mutable_dv()->set_x(velocity.x);
   p->mutable_vec2()->mutable_dv()->set_y(velocity.y);
-  // std::cout << "to dv" << std::hypot(data.x, data.y) << "\n";
-  ;
   p->set_calculatedat(calculatedAt);
   return std::move(p);
 }
