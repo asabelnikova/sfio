@@ -1,4 +1,5 @@
 server/tags
 client/node_modules/
+client/app/application.js*
 build
 .ycm_extra_conf.pyc
